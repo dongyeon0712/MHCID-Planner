@@ -209,16 +209,39 @@ function renderScheduleGrid(container) {
     dayCols[day] = col;
   });
 
+  // Collect every class instance per day first, so overlapping classes on
+  // the same day can be laid out side by side instead of stacked on top of
+  // each other.
+  const dayEntries = {};
+  DAY_ORDER.forEach(day => { dayEntries[day] = []; });
   schedule.forEach(cls => {
-    const top = (timeToMinutes(cls.start) - startHour * 60) / 60 * ROW_H;
-    const height = (timeToMinutes(cls.end) - timeToMinutes(cls.start)) / 60 * ROW_H;
+    const startMin = timeToMinutes(cls.start);
+    const endMin = timeToMinutes(cls.end);
+    const top = (startMin - startHour * 60) / 60 * ROW_H;
+    const height = (endMin - startMin) / 60 * ROW_H;
     cls.days.forEach(day => {
-      const col = dayCols[day];
-      if (!col) return;
+      if (!dayEntries[day]) return;
+      dayEntries[day].push({ cls, top, height, start: startMin, end: endMin });
+    });
+  });
+
+  DAY_ORDER.forEach(day => {
+    const entries = dayEntries[day];
+    const col = dayCols[day];
+    if (!col || entries.length === 0) return;
+
+    assignOverlapColumns(entries);
+
+    entries.forEach(entry => {
+      const { cls, top, height, col: colIndex, totalCols } = entry;
       const block = document.createElement("div");
       block.className = "class-block " + (COLOR_LABEL[cls.color] || "block-navy");
       block.style.top = (top + 2) + "px";
       block.style.height = Math.max(height - 4, 18) + "px";
+      const widthPct = 100 / totalCols;
+      block.style.left = `calc(${colIndex * widthPct}% + 3px)`;
+      block.style.width = `calc(${widthPct}% - 6px)`;
+      block.style.right = "auto";
       block.innerHTML = `<div class="cb-title">${escapeHtml(cls.title)}</div>` +
         (cls.room ? `<div class="cb-meta">${escapeHtml(cls.room)}</div>` : "");
       block.tabIndex = 0;
@@ -239,6 +262,49 @@ function renderScheduleGrid(container) {
   });
 
   container.appendChild(body);
+}
+
+/* Greedy interval layout: sorts same-day entries by start time, places each
+   in the first free column among the classes it currently overlaps with,
+   and gives every entry in that overlap cluster the same column count so
+   they divide the day's width evenly (same approach most calendar UIs use). */
+function assignOverlapColumns(entries) {
+  entries.sort((a, b) => a.start - b.start || a.end - b.end);
+
+  let cluster = [];
+  let columnEnds = [];
+  let clusterMaxEnd = -Infinity;
+
+  const flush = () => {
+    if (cluster.length === 0) return;
+    const totalCols = Math.max(...cluster.map(e => e.col)) + 1;
+    cluster.forEach(e => { e.totalCols = totalCols; });
+    cluster = [];
+  };
+
+  entries.forEach(entry => {
+    if (entry.start >= clusterMaxEnd) {
+      flush();
+      columnEnds = [];
+      clusterMaxEnd = -Infinity;
+    }
+    let placed = false;
+    for (let i = 0; i < columnEnds.length; i++) {
+      if (columnEnds[i] <= entry.start) {
+        columnEnds[i] = entry.end;
+        entry.col = i;
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) {
+      entry.col = columnEnds.length;
+      columnEnds.push(entry.end);
+    }
+    clusterMaxEnd = Math.max(clusterMaxEnd, entry.end);
+    cluster.push(entry);
+  });
+  flush();
 }
 
 /* ---------- Class detail popover (click a block on the grid) ---------- */

@@ -218,7 +218,7 @@ body {
   display: flex;
   gap: var(--space-xl);
   padding: 0 var(--space-2xl) var(--space-lg);
-  align-items: flex-start;
+  align-items: stretch;
   flex-wrap: wrap;
 }
 .card {
@@ -369,11 +369,30 @@ body {
 :root[data-theme="dark"] .cp-subject { color: #b79cf0; }
 .cp-row { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
 
-.block-navy { background: #2b2d36; color: #ffffff; }
-.block-purple { background: #4b2e83; color: #ffffff; }
-.block-blue { background: #1f5fd6; color: #ffffff; }
-.block-gold { background: #ffdc2e; color: #2b2316; }
-.block-cream { background: #f4efe3; color: #2b2316; border: 1px solid #d8d4c8; }
+/* Each class color also carries its own pattern, so classes stay
+   distinguishable without relying on color alone (color-blind / low-vision
+   accessibility, and still readable in grayscale or print). */
+.block-navy {
+  background-color: #2b2d36; color: #ffffff;
+  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.16) 0 2px, transparent 2px 9px);
+}
+.block-purple {
+  background-color: #4b2e83; color: #ffffff;
+  background-image: repeating-linear-gradient(-45deg, rgba(255,255,255,0.18) 0 2px, transparent 2px 9px);
+}
+.block-blue {
+  background-color: #1f5fd6; color: #ffffff;
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.2) 0 2px, transparent 2px 9px);
+}
+.block-gold {
+  background-color: #ffdc2e; color: #2b2316;
+  background-image: radial-gradient(rgba(0,0,0,0.22) 1.2px, transparent 1.6px);
+  background-size: 9px 9px;
+}
+.block-cream {
+  background-color: #f4efe3; color: #2b2316; border: 1px solid #d8d4c8;
+  background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0 2px, transparent 2px 9px);
+}
 
 .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-top: var(--space-md); }
 .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
@@ -467,13 +486,34 @@ body {
 .color-picks label { cursor: pointer; position: relative; }
 .color-picks input { position: absolute; opacity: 0; pointer-events: none; }
 .swatch { display: block; width: 24px; height: 24px; border-radius: var(--radius-sm); border: 2px solid transparent; }
-.color-picks input:checked + .swatch { border-color: var(--purple); }
+.color-picks input:checked + .swatch {
+  outline: 3px solid #e02424;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--card-bg);
+}
 .color-picks input:focus-visible + .swatch { outline: 2px solid var(--gold); outline-offset: 2px; }
-.swatch-navy { background: #2b2d36; }
-.swatch-purple { background: #4b2e83; }
-.swatch-gold { background: #ffdc2e; }
-.swatch-cream { background: #f4efe3; border-color: var(--border-default) !important; }
-.swatch-blue { background: #1f5fd6; }
+.color-picks input:checked:focus-visible + .swatch { outline: 3px solid #e02424; }
+.swatch-navy {
+  background-color: #2b2d36;
+  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.16) 0 2px, transparent 2px 9px);
+}
+.swatch-purple {
+  background-color: #4b2e83;
+  background-image: repeating-linear-gradient(-45deg, rgba(255,255,255,0.18) 0 2px, transparent 2px 9px);
+}
+.swatch-gold {
+  background-color: #ffdc2e;
+  background-image: radial-gradient(rgba(0,0,0,0.22) 1.2px, transparent 1.6px);
+  background-size: 9px 9px;
+}
+.swatch-cream {
+  background-color: #f4efe3; border-color: var(--border-default) !important;
+  background-image: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0 2px, transparent 2px 9px);
+}
+.swatch-blue {
+  background-color: #1f5fd6;
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.2) 0 2px, transparent 2px 9px);
+}
 .form-error {
   grid-column: 1 / -1;
   margin: 0;
