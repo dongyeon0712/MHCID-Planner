@@ -325,9 +325,49 @@ body {
   padding: 6px 8px;
   overflow: hidden;
   box-sizing: border-box;
+  cursor: pointer;
+  transition: filter 0.15s, box-shadow 0.15s;
+}
+.class-block:hover, .class-block:focus-visible {
+  filter: brightness(1.08);
+  box-shadow: 0 0 0 2px var(--purple);
+  outline: none;
 }
 .class-block .cb-title { font-size: 12px; font-weight: 700; line-height: 15px; }
 .class-block .cb-meta { font-size: 11px; line-height: 14px; opacity: 0.85; }
+
+/* Class detail popover */
+.class-popover {
+  position: fixed;
+  z-index: 1000;
+  min-width: 200px;
+  max-width: 260px;
+  background: var(--card-bg);
+  color: var(--text);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  padding: var(--space-md);
+  padding-right: 32px;
+}
+.class-popover-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.class-popover-close:hover { background: var(--chip-bg); color: var(--text); }
+.cp-title { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.cp-subject { font-size: 13px; color: var(--purple); font-weight: 600; margin-bottom: 8px; }
+:root[data-theme="dark"] .cp-subject { color: #b79cf0; }
+.cp-row { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
 
 .block-navy { background: #2b2d36; color: #ffffff; }
 .block-purple { background: #4b2e83; color: #ffffff; }

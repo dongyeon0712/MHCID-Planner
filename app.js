@@ -1,8 +1,13 @@
 /* ---------- Default seed data (used the first time this browser opens the page) ----------
-   Schedule and todos start empty for every new visitor — those are personal,
-   and this file ships to everyone who opens the page. Events stay populated:
+   Todos start empty for every new visitor — those are personal, and this
+   file ships to everyone who opens the page. Schedule starts pre-filled
+   with the two core cohort classes everyone shares; students add their own
+   electives (like studio sections) on top. Events stay populated too:
    they're shared MHCI+D program dates, not private to any one student. */
-const DEFAULT_SCHEDULE = [];
+const DEFAULT_SCHEDULE = [
+  { id: "c1", title: "HCID 530 A", subject: "Usability & User Research", room: "L039 200", days: ["Mon", "Wed"], start: "10:00", end: "11:20", color: "navy" },
+  { id: "c2", title: "HCID 511 A", subject: "Ideation Studio", room: "L039 200", days: ["Tue", "Thu"], start: "13:30", end: "15:50", color: "purple" },
+];
 
 const DEFAULT_EVENTS = [
   { id: "e1",  title: "Program Meeting",                     date: "2026-10-02", time: "11:00", location: "MHCI+D Studio" },
@@ -216,11 +221,72 @@ function renderScheduleGrid(container) {
       block.style.height = Math.max(height - 4, 18) + "px";
       block.innerHTML = `<div class="cb-title">${escapeHtml(cls.title)}</div>` +
         (cls.room ? `<div class="cb-meta">${escapeHtml(cls.room)}</div>` : "");
+      block.tabIndex = 0;
+      block.setAttribute("role", "button");
+      block.setAttribute("aria-label", `${cls.title}${cls.subject ? ", " + cls.subject : ""}, details`);
+      block.addEventListener("click", e => {
+        e.stopPropagation();
+        showClassPopover(cls, block);
+      });
+      block.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          showClassPopover(cls, block);
+        }
+      });
       col.appendChild(block);
     });
   });
 
   container.appendChild(body);
+}
+
+/* ---------- Class detail popover (click a block on the grid) ---------- */
+let closeActivePopover = null;
+
+function showClassPopover(cls, anchorEl) {
+  if (closeActivePopover) closeActivePopover();
+
+  const pop = document.createElement("div");
+  pop.className = "class-popover";
+  pop.setAttribute("role", "dialog");
+  const timeRange = `${fmtTime(cls.start)} – ${fmtTime(cls.end)}`;
+  pop.innerHTML = `
+    <button class="class-popover-close" aria-label="Close">&times;</button>
+    <div class="cp-title">${escapeHtml(cls.title)}</div>
+    ${cls.subject ? `<div class="cp-subject">${escapeHtml(cls.subject)}</div>` : ""}
+    <div class="cp-row">${cls.days.join(", ")} · ${timeRange}</div>
+    ${cls.room ? `<div class="cp-row">${escapeHtml(cls.room)}</div>` : ""}
+  `;
+  document.body.appendChild(pop);
+
+  const r = anchorEl.getBoundingClientRect();
+  const popRect = pop.getBoundingClientRect();
+  let left = r.left + r.width / 2 - popRect.width / 2;
+  left = Math.max(12, Math.min(left, window.innerWidth - popRect.width - 12));
+  let top = r.bottom + 8;
+  if (top + popRect.height > window.innerHeight - 12) top = r.top - popRect.height - 8;
+  pop.style.left = left + "px";
+  pop.style.top = Math.max(12, top) + "px";
+
+  const onClose = () => {
+    pop.remove();
+    document.removeEventListener("click", onOutsideClick, true);
+    document.removeEventListener("keydown", onKey);
+    closeActivePopover = null;
+  };
+  const onOutsideClick = e => {
+    if (!pop.contains(e.target)) onClose();
+  };
+  const onKey = e => {
+    if (e.key === "Escape") onClose();
+  };
+  pop.querySelector(".class-popover-close").addEventListener("click", onClose);
+  setTimeout(() => {
+    document.addEventListener("click", onOutsideClick, true);
+    document.addEventListener("keydown", onKey);
+  }, 0);
+  closeActivePopover = onClose;
 }
 
 function renderScheduleLegend(container) {
@@ -232,7 +298,8 @@ function renderScheduleLegend(container) {
   schedule.forEach(cls => {
     const item = document.createElement("div");
     item.className = "legend-item";
-    item.innerHTML = `<span class="legend-dot ${COLOR_LABEL[cls.color] || "block-navy"}"></span>${escapeHtml(cls.title)}`;
+    const label = cls.subject ? `${cls.title} — ${cls.subject}` : cls.title;
+    item.innerHTML = `<span class="legend-dot ${COLOR_LABEL[cls.color] || "block-navy"}"></span>${escapeHtml(label)}`;
     container.appendChild(item);
   });
 }
@@ -364,7 +431,8 @@ function renderClassList() {
 
     const info = document.createElement("div");
     info.className = "class-info";
-    info.innerHTML = `<div class="ci-title">${escapeHtml(cls.title)}</div>
+    const titleLabel = cls.subject ? `${cls.title} — ${cls.subject}` : cls.title;
+    info.innerHTML = `<div class="ci-title">${escapeHtml(titleLabel)}</div>
       <div class="ci-meta">${cls.days.join(", ")} · ${fmtTimeRange(cls.start, cls.end)}${cls.room ? " · " + escapeHtml(cls.room) : ""}</div>`;
 
     const actions = document.createElement("div");
@@ -404,6 +472,7 @@ scheduleForm.addEventListener("submit", e => {
   clearFormError("scheduleFormError");
   const id = document.getElementById("scheduleId").value;
   const title = document.getElementById("fTitle").value.trim();
+  const subject = document.getElementById("fSubject").value.trim();
   const room = document.getElementById("fRoom").value.trim();
   const start = document.getElementById("fStart").value;
   const end = document.getElementById("fEnd").value;
@@ -421,9 +490,9 @@ scheduleForm.addEventListener("submit", e => {
 
   if (id) {
     const cls = schedule.find(c => c.id === id);
-    Object.assign(cls, { title, room, start, end, days, color });
+    Object.assign(cls, { title, subject, room, start, end, days, color });
   } else {
-    schedule.push({ id: uid("c"), title, room, start, end, days, color });
+    schedule.push({ id: uid("c"), title, subject, room, start, end, days, color });
   }
   saveSchedule();
   resetScheduleForm();
@@ -447,6 +516,7 @@ function editClass(id) {
   if (!cls) return;
   document.getElementById("scheduleId").value = cls.id;
   document.getElementById("fTitle").value = cls.title;
+  document.getElementById("fSubject").value = cls.subject || "";
   document.getElementById("fRoom").value = cls.room || "";
   document.getElementById("fStart").value = cls.start;
   document.getElementById("fEnd").value = cls.end;
