@@ -1,0 +1,248 @@
+<meta charset="utf-8" />
+<title>MHCI+D Planner</title>
+
+<!-- Google Analytics (GA4) — counts visits only; never sees schedule/todo
+     content, which stays in localStorage and is never sent anywhere.
+     Replace G-XXXXXXXXXX with your real Measurement ID (see setup steps). -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+
+<!-- NAME GATE: shown until a name is entered on this browser; the dashboard below stays hidden until then. -->
+<div class="auth-gate" id="nameGate" hidden>
+  <div class="auth-card">
+    <div class="auth-logo">MHCI+D PLANNER</div>
+    <h1>What's your name?</h1>
+    <p>Just a label for your schedule on this device — nothing is sent anywhere. Everything you add is saved only in this browser; no one else who opens this page can see it, and you can't see theirs.</p>
+    <form id="nameForm" class="name-form">
+      <input type="text" id="nameInputField" placeholder="Your first name" autocomplete="given-name" />
+      <button type="submit" class="btn btn-primary">Continue</button>
+    </form>
+    <p class="form-error" id="nameError" hidden></p>
+  </div>
+</div>
+
+<div class="app" id="appRoot" hidden>
+
+  <header class="navbar">
+    <div class="navbar-inner">
+      <div class="wordmark">MHCI+D PLANNER</div>
+      <nav class="navlinks" id="navlinks">
+        <button class="navlink" data-tab="dashboard">Dashboard</button>
+        <button class="navlink" data-tab="schedule">Schedule</button>
+        <button class="navlink" data-tab="events">Events</button>
+        <button class="navlink" data-tab="todos">To-Dos</button>
+      </nav>
+      <div class="user-chip" id="userChip">
+        <span id="userName" class="user-name"></span>
+        <button class="btn-link-text user-signout" id="changeNameBtn">Not you?</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-content">
+
+    <p class="privacy-note">Everything you add here is saved only in this browser, on this device.</p>
+
+    <!-- DASHBOARD TAB -->
+    <section class="tab" id="tab-dashboard">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" id="greeting">My Schedule</h1>
+          <p class="page-subtitle" id="todaySubtitle"></p>
+        </div>
+        <div class="badge badge-brand">MHCI+D · YEAR 1</div>
+      </div>
+
+      <div class="main-row">
+        <div class="card schedule-card">
+          <div class="card-header-row">
+            <h2 class="card-title">This Week's Schedule</h2>
+            <button class="btn btn-outline btn-sm" data-goto="schedule">+ Add Class</button>
+          </div>
+          <div class="grid-wrap">
+            <div id="scheduleGrid" class="schedule-grid"></div>
+          </div>
+          <div class="legend" id="scheduleLegend"></div>
+        </div>
+
+        <div class="card events-card">
+          <div class="card-header-row">
+            <h2 class="card-title">Upcoming Events</h2>
+            <button class="btn btn-outline btn-sm" data-goto="events">+ Add Event</button>
+          </div>
+          <div class="events-list" id="dashEventsList"></div>
+        </div>
+      </div>
+
+      <div class="card todo-card full-width">
+        <div class="card-header-row">
+          <h2 class="card-title">To-Dos</h2>
+          <button class="btn btn-outline btn-sm" data-goto="todos">+ Add Task</button>
+        </div>
+        <div class="todo-grid" id="dashTodoGrid"></div>
+      </div>
+    </section>
+
+    <!-- SCHEDULE TAB -->
+    <section class="tab" id="tab-schedule" hidden>
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Edit Schedule</h1>
+          <p class="page-subtitle">Add, edit, or remove classes — changes appear instantly on your Dashboard.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <h2 class="card-title" id="scheduleFormTitle">Add a Class</h2>
+        </div>
+        <form id="scheduleForm" class="form-grid" novalidate>
+          <input type="hidden" id="scheduleId" />
+          <label class="field">
+            <span>Course / Title</span>
+            <input type="text" id="fTitle" placeholder="e.g. HCID 530 A" />
+          </label>
+          <label class="field">
+            <span>Room / Location</span>
+            <input type="text" id="fRoom" placeholder="e.g. L039 200" />
+          </label>
+          <label class="field">
+            <span>Start time</span>
+            <input type="time" id="fStart" />
+          </label>
+          <label class="field">
+            <span>End time</span>
+            <input type="time" id="fEnd" />
+          </label>
+          <div class="field">
+            <span>Days</span>
+            <div class="day-checks" id="dayChecks">
+              <label><input type="checkbox" value="Mon" /> Mon</label>
+              <label><input type="checkbox" value="Tue" /> Tue</label>
+              <label><input type="checkbox" value="Wed" /> Wed</label>
+              <label><input type="checkbox" value="Thu" /> Thu</label>
+              <label><input type="checkbox" value="Fri" /> Fri</label>
+            </div>
+          </div>
+          <div class="field">
+            <span>Color</span>
+            <div class="color-picks" id="colorPicks">
+              <label><input type="radio" name="fColor" value="navy" checked /><span class="swatch swatch-navy"></span></label>
+              <label><input type="radio" name="fColor" value="purple" /><span class="swatch swatch-purple"></span></label>
+              <label><input type="radio" name="fColor" value="gold" /><span class="swatch swatch-gold"></span></label>
+              <label><input type="radio" name="fColor" value="cream" /><span class="swatch swatch-cream"></span></label>
+              <label><input type="radio" name="fColor" value="blue" /><span class="swatch swatch-blue"></span></label>
+            </div>
+          </div>
+          <p class="form-error" id="scheduleFormError" hidden></p>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="scheduleSubmitBtn">Add Class</button>
+            <button type="button" class="btn btn-ghost" id="scheduleCancelBtn" hidden>Cancel Edit</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <h2 class="card-title">Your Classes</h2>
+        </div>
+        <div class="class-list" id="classList"></div>
+      </div>
+    </section>
+
+    <!-- EVENTS TAB -->
+    <section class="tab" id="tab-events" hidden>
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">Events</h1>
+          <p class="page-subtitle">Past events fade out and drop off your Dashboard automatically as dates pass.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <h2 class="card-title" id="eventFormTitle">Add an Event</h2>
+        </div>
+        <form id="eventForm" class="form-grid" novalidate>
+          <input type="hidden" id="eventId" />
+          <label class="field">
+            <span>Event name</span>
+            <input type="text" id="eTitle" placeholder="e.g. DUB Seminar" />
+          </label>
+          <label class="field">
+            <span>Date</span>
+            <input type="date" id="eDate" />
+          </label>
+          <label class="field">
+            <span>Time</span>
+            <input type="time" id="eTime" />
+          </label>
+          <label class="field">
+            <span>Location</span>
+            <input type="text" id="eLocation" placeholder="e.g. Kane Hall 225" />
+          </label>
+          <p class="form-error" id="eventFormError" hidden></p>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="eventSubmitBtn">Add Event</button>
+            <button type="button" class="btn btn-ghost" id="eventCancelBtn" hidden>Cancel Edit</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <h2 class="card-title">All Events</h2>
+        </div>
+        <div class="events-list full" id="allEventsList"></div>
+      </div>
+    </section>
+
+    <!-- TODOS TAB -->
+    <section class="tab" id="tab-todos" hidden>
+      <div class="page-header">
+        <div>
+          <h1 class="page-title">To-Dos</h1>
+          <p class="page-subtitle">Check items off as you complete them.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <h2 class="card-title">Add a Task</h2>
+        </div>
+        <form id="todoForm" class="form-grid" novalidate>
+          <label class="field">
+            <span>Task</span>
+            <input type="text" id="tTask" placeholder="e.g. Send three outreach messages" />
+          </label>
+          <label class="field">
+            <span>Due</span>
+            <input type="text" id="tDue" placeholder="e.g. Due Oct 17 or Weekly from Oct 5" />
+          </label>
+          <p class="form-error" id="todoFormError" hidden></p>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Add Task</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-header-row">
+          <h2 class="card-title">All Tasks</h2>
+        </div>
+        <div class="todo-grid full" id="allTodoGrid"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
