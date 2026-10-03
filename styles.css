@@ -170,11 +170,20 @@ body {
   gap: var(--space-md);
 }
 .wordmark {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-family: inherit;
   color: var(--text-on-navbar);
   font-weight: 700;
   font-size: 18px;
   letter-spacing: 0.5px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
 }
+.wordmark:hover { color: var(--gold); }
+.wordmark:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .navlinks { display: flex; gap: 4px; flex-wrap: wrap; }
 .navlink {
   appearance: none;
