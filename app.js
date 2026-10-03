@@ -35,6 +35,7 @@ const LS_NAME = "mhcid.name";
 const LS_SCHEDULE = "mhcid.schedule";
 const LS_EVENTS = "mhcid.events";
 const LS_TODOS = "mhcid.todos";
+const LS_PRIVACY_DISMISSED = "mhcid.privacyNoteDismissed";
 
 function loadLS(key, fallback) {
   try {
@@ -774,3 +775,13 @@ if (savedName) {
 } else {
   nameGate.hidden = false;
 }
+
+/* ---------- Privacy note (dismissible) ---------- */
+const privacyNote = document.getElementById("privacyNote");
+if (loadLS(LS_PRIVACY_DISMISSED, false)) {
+  privacyNote.hidden = true;
+}
+document.getElementById("privacyNoteDismiss").addEventListener("click", () => {
+  privacyNote.hidden = true;
+  saveLS(LS_PRIVACY_DISMISSED, true);
+});
